@@ -304,3 +304,141 @@ function foo() {
 }
 var id = 21
 foo.call({ id: 42 }) // id: 21
+
+/*
+  箭头函数可以让 setTimeout 里面的 this 绑定定义时所在的作用域, 而不是指向运行时所在的作用域
+*/
+function Timer() {
+  this.s1 = 0
+  this.s2 = 0
+  // 使用箭头函数, this 绑定了定义时所在的作用域(Timer 函数)
+  setInterval(() => {
+    this.s1++
+  }, 1000)
+  // 使用普通函数, this 指向运行时所在的作用域(全局作用域)
+  setInterval(function () {
+    this.s2++
+  }, 1000)
+}
+var timer = new Timer()
+setTimeout(() => {
+  console.log(`s1: ${timer.s1}`)
+}, 3100) // s1 刷新了3次
+setTimeout(() => {
+  console.log(`s2: ${timer.s2}`)
+}, 3100) // s2 一次都没刷新
+
+/*
+  箭头函数可以让 this 指向固定化, 这非常有利于回调函数的封装
+*/
+
+/*
+  箭头函数根本没有自己的 this 导致内部的 this 就是外层代码块的 this 正因为它没有 this 所以也就不能用作构造函数
+*/
+// es6
+function foo() {
+  setTimeout(() => {
+    console.log(`log: ${this.id}`)
+  }, 100)
+}
+// es5
+function foo() {
+  // 也就是说, 箭头函数的 this 是借用外层的
+  var _this = this
+  setTimeout(() => {
+    console.log(`id: ${_tihs.id}`)
+  }, 100)
+}
+
+/*
+  所有箭头函数的 this (多层嵌套)都没有自己的 this 它们的 this 其实都是最外层 foo 函数的 this
+  arguments super new.target 在箭头函数里面都没有
+  由于箭头函数没有自己的 this, 当然也不能使用 call apply bind 这些方法去改变 this 的指向
+*/
+function foo() {
+  setTimeout(() => {
+    console.log('args: ' + arguments)
+  }, 1000)
+}
+foo(2, 4, 6, 8) // args: [object Arguments], 指向外层函数的 arguments
+
+/*
+  箭头函数不适用场合
+  第一: 定义对象的方法, 且该方法内部包含 this
+  第二: 需要动态 this 的时候, 也不应该使用 箭头函数
+*/
+const cat = {
+  lives: 9,
+  // 错误, 此时, this 将指向全局作用域, 因为对象不构成单独的作用域, 导致 jumps 箭头函数定义时的作用域就是全局作用域
+  jumps: () => {
+    this.lives--
+  },
+}
+
+var button = document.getElementById('press')
+// button 的监听函数是一个箭头函数, 导致里面的 this 就是全局对象, 如果改成普通函数, this 就会动态指向被点击的按钮对象
+button.addEventListener('click', () => {
+  this.classList.toggle('on')
+})
+
+/*
+  数组实例的 entries() keys() 和 values 遍历数组, 都返回一个遍历器对象, 可以用 for ... of 进行遍历
+  keys 对键名
+  values 对键值
+  entries 对键值对
+*/
+for (const index of ['a', 'b'].keys()) {
+  console.log(index)
+}
+for (const elem of ['a', 'b'].values()) {
+  console.log(elem)
+}
+for (const [index, elem] of ['a', 'b'].entries()) {
+  console.log(index, elem)
+}
+console.log(['a', 'b'].entries()) // 返回的是一个遍历器对象, Object [Array Iterator] {}
+
+/* 数组实例的 includes() 表示某个数组是否包含给定的值 */
+console.log([1, 2, 3].includes(2)) // true
+console.log([1, 2, 3].includes(4)) // false
+console.log([1, 2, NaN].includes(NaN)) // true 可以正确识别 NaN
+// 第二个参数表示起始位置, 默认为 0
+console.log([1, 2, 3].includes(3, 3)) // false
+// 可以替代掉 indexOf 方法, indexOf 会误判 NaN indexOf 不够直观
+console.log([NaN].indexOf(NaN)) // -1
+console.log([NaN].includes(NaN)) // true
+
+/*
+  flat flatMap 将嵌套的数组拉平, 多维 => 一维
+  返回一个新数组, 对原数组无影响
+
+  flat 默认拉平一层, 可以接收一个参数(number)拉平多层(嵌套)
+
+  flatMap 只能展开一层, 先 map 后 flat
+*/
+console.log([1, 2, [3, 4]].flat()) // [ 1, 2, 3, 4 ]
+console.log([1, 2, [3, [4, 5]]].flat(2)) // [ 1, 2, 3, 4, 5 ]
+// 不管多少层, 通通拉平, 使用 Infinity
+console.log([1, [2, [3]]].flat(Infinity)) // [ 1, 2, 3 ]
+
+// flat 跳过数组空位(删除数组空位)
+console.log([1, 2, , , 3, 5].flat()) // [ 1, 2, 3, 5 ]
+
+console.log([2, 3, 4].flatMap((x) => [x, x * 2])) // [ 2, 4, 3, 6, 4, 8 ]
+// 相当于
+console.log(
+  [
+    [2, 4],
+    [3, 6],
+    [4, 8],
+  ].flat(),
+)
+
+/*
+  数组的空位, [,,]
+  空位不是 undefined, 一个位置的值等于 undefined 依然是有值的, 空位是没有任何值
+  es5 对空位的处理非常不一致, es6 明确将数组的空位转为 undefined
+  由于空位的处理规则非常不统一, 建议避免出现空位
+*/
+console.log(0 in [undefined, undefined, undefined]) // true
+console.log(0 in [, , ,]) // false
