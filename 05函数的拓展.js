@@ -442,3 +442,181 @@ console.log(
 */
 console.log(0 in [undefined, undefined, undefined]) // true
 console.log(0 in [, , ,]) // false
+
+/* 函数参数的默认值, 直接写在参数定义的后面 */
+function log(x, y = 'world') {
+  console.log(x, y)
+}
+log('hello') /* 默认值起效, undefined */
+log('hello', 'china')
+log('hello', '')
+log('hello', null) /* 值为 null 默认值不起效 */
+
+/* 默认参数是惰性求值的, 每次都重新计算默认值表达式的值 */
+let x = 99
+function foo(p = x + 1) {
+  console.log(p)
+}
+foo()
+x = 100
+foo() /* 101 随着 x 的变化, 函数参数的默认值也跟着变化 */
+
+/* 解构赋值的默认值 */
+function foo({ x, y = 5 }) {
+  console.log(x, y)
+}
+foo({})
+foo({ x: 1 })
+foo() /* TypeError: Cannot destructure property 'x' of 'undefined' as it is undefined. */
+/* 函数参数的默认值 + 解构赋值的默认值 */
+function foo({ x, y = 5 } = {}) {
+  console.log(x, y)
+}
+foo() // undefined 5 函数参数的默认值生效, 然后才是解构赋值的默认值生效 条件都是 undefined
+
+/* 写法一，函数参数的默认值是空对象，但是设置了对象解构赋值的默认值。 */
+function m1({ x = 0, y = 0 } = {}) {
+  return [x, y]
+}
+/* 写法二，函数参数的默认值是一个有具体属性的对象，但是没有设置对象解构的默认值。 */
+function m2({ x, y } = { x: 0, y: 0 }) {
+  result[(x, y)]
+}
+/* 没有参数的情况下 */
+m1() // [0, 0]
+m2() // [0, 0]
+// x 和 y 都有值的情况
+m1({ x: 3, y: 8 }) // [3, 8]
+m2({ x: 3, y: 8 }) // [3, 8]
+// x 有值，y 无值的情况
+m1({ x: 3 }) // [3, 0]
+m2({ x: 3 }) // [3, undefined]
+// x 和 y 都无值的情况
+m1({}) // [0, 0];
+m2({}) // [undefined, undefined]
+
+m1({ z: 3 }) // [0, 0]
+m2({ z: 3 }) // [undefined, undefined]
+
+/* 定义了默认值的参数, 应该是函数的尾参数, 非尾部参数设置默认值, 实际上这个参数无法省略 */
+function f(x = 1, y) {
+  return [x, y]
+}
+f()
+f(2)
+// f(, 1) 报错, 实际上这个参数无法省略
+f(undefined, 1) // 需要显式在此位置写一个 undefined
+
+/* 传入 undefined 将触发参数默认值, null 没有这个效果 */
+function foo(x = 5, y = 6) {
+  console.log(x, y)
+}
+foo(undefined, null) /* 5 null  */
+
+/* 指定默认值后, length 属性将失真, 默认值, 以及 rest 都不会被计入 */
+
+/* 一旦设置了参数的默认值, 参数就会形成一个单独的作用域, 初始化结束后, 这个作用域消失 */
+
+/* rest 参数, 用于获取函数的多余参数, 可以替代掉 arguments 对象, rest 将多余的参数放入数组中 */
+function add(...values) {
+  let sum = 0
+  for (const val of values) {
+    sum += val
+  }
+  return sum
+}
+console.log(add(2, 5, 3)) // 10
+
+/* 使用 rest 参数改写数组 push 方法 */
+function push(array, ...items) {
+  items.forEach((item) => {
+    array.push(item)
+    console.log(item)
+  })
+}
+var a = []
+push(a, 1, 2, 3)
+/* rest 参数只能是最后一个参数, 否则报错 */
+// function f(a, ...b, c) {
+//   console.log(b);
+// }
+// f(1, 2, 3, 4) /* SyntaxError: Rest parameter must be last formal parameter */
+
+/* 只要参数使用了默认值, 解构赋值, 扩展运算符, 就不能显式指定严格模式 */
+
+/*
+  如果箭头函数的代码块部分多余一条语句, 就要使用大括号将它们括起来, 并且使用 return 语句返回
+  1 {}
+  2 return 语句
+*/
+
+var sum = (num1, num2) => {
+  return num1 + num2
+}
+
+/* 箭头函数 + 解构赋值 */
+const full = ({ first, last }) => first + ' ' + last
+
+/* 简化回调函数, 表达更加简洁 */
+// 正常
+;[1, 2, 3].map(function (x) {
+  return x * x
+})
+// 箭头函数
+;[1, 2, 3].map((x) => x * x)
+
+/* rest 参数 + 箭头函数 */
+const numbers = (...nums) => nums
+console.log(numbers(1, 2, 3, 4, 5)) // [ 1, 2, 3, 4, 5 ]
+
+const headAndTail = (head, ...tail) => [head, tail]
+console.log(headAndTail(1, 2, 3, 4, 5)) // [ 1, [ 2, 3, 4, 5 ] ]
+
+/*
+  函数体内的 this 对象, 就是定义时所在的对象, 而不是使用时所在的对象 (固定的)
+  不可以当做构造函数, 不可以使用 new 命令, 否则报错
+  不可以使用 arguments 对象, 可以使用 rest 代替
+  不可以使用 yield 命令, 不能作为 Generator 函数
+*/
+/*
+  绑定了定义时所在的作用域, 而不是指向运行时所在的作用域
+*/
+function Timer() {
+  this.s1 = 0
+  this.s2 = 0
+  setInterval(() => {
+    this.s1++
+  }, 1000)
+  setInterval(function () {
+    this.s2++
+  }, 1000)
+}
+var timer = new Timer()
+setTimeout(() => {
+  console.log('s1:', timer.s1)
+}, 3100) // s1: 3 timer.s1 更新了三次, 说明箭头函数的 this 就是定义时所在的对象(函数)
+setTimeout(() => {
+  console.log('s2:', timer.s2)
+}, 3100) // s2: 0 timer.s2 没有更新一次
+
+/*
+  箭头函数根本没有自己的 this, 导致内部的 this 就是外层代码块的 this
+  因为没有 this 所以也就不能用作构造函数
+  总之, 箭头函数根本没有自己的 this 总是引用外层的 this
+  arguments super new.target 也不存在, 指向外层函数的对应变量
+*/
+
+/*
+  箭头函数的不适用场合
+*/
+/* 定义对象的方法, 且该方法内部包含 this */
+const cat = {
+  lives: 9,
+  jumps: () => {
+    this.lives--
+  } /* 对象不构成单独的作用域, 因此 jump (箭头函数)实际上指向的是全局变量 */,
+}
+cat.jumps()
+console.log(cat.lives) // 9 没有变化, 对象不构成单独的作用域, cat 的作用域其实就是 "全局作用域", 箭头函数的 this 指向 global
+
+/* 需要动态 this 的时候, 也不应该使用箭头函数 */

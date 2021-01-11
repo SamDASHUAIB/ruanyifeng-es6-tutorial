@@ -322,3 +322,80 @@ p.then(
   }),
 )
 
+/* Promise 异步编程的一种解决方案 */
+/* Promise 容器, 保存着某个未来才会结束的事件(异步操作)的结果 */
+/*
+  特点:
+  对象的状态不受外界影响, pending fulfilled rejected 三种状态, 只有异步操作的结果可以决定当前是哪一种状态
+  一旦状态改变, 就不会再变, "凝固" resolved
+    改变已经发生 => 对 Promise 对象添加回调函数, 也会立即得到这个结果
+    事件: 一旦错过了, 再去监听, 得不到结果
+  避免了层层嵌套的回调函数, Promise 对象提供统一的接口, 使得控制异步操作更加容易
+  缺点
+    无法取消 Promise, 一旦新建立即执行, 无法中途取消
+    如果不设置回调函数, Promise 内部抛出的错误, 不会反应到外部
+    pending 时, 无法得知目前进展到哪一个阶段(刚刚开始, 还是即将完成)
+*/
+const promise = new Promise((resolve, reject) => {
+  if (/* 异步找错成功 */ true) {
+    resolve(value)
+  } else {
+    reject(value)
+  }
+})
+
+/*
+  resolve: 未完成 => 成功 pending => resolved 异步操作的结果, 作为参数传递出去
+  reject: 未完成 => 失败 pending => rejected 异步操作报出的错误, 作为参数传递出去
+*/
+promise.then(
+  (value) => {
+    /* success */
+  },
+  (err) => {
+    /* failure */
+  },
+)
+
+function timeout(ms) {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, ms, 'done')
+  })
+}
+timeout(100).then((value) => {
+  console.log(value)
+})
+
+/* promise 新建后就会立即执行 */
+let promise = new Promise((resolve, reject) => {
+  console.log('Promise')
+  resolve()
+})
+promise.then(function () {
+  console.log('resolve')
+})
+console.log('Hi')
+/*
+  Promise 说明 Promise 新建后会立即执行
+  Hi 同步代码
+  resolve 回调函数, then 方法指定的回调函数, 将在当前脚本所有同步任务执行完才会执行, 所以 resolved 最后输出
+*/
+
+/* 如果 resolve 和 reject 函数带有参数, 那么它们的参数会被传递给回调函数 */
+/* 调用 resolve 或者 reject 并不会终结 Promise 的参数函数的执行 */
+new Promise((resolve, reject) => {
+  return resolve(1) /* 本轮事件循环的末尾执行, 总是晚于本轮循环的同步任务, 添加 return 就不会有意外了 */
+  console.log(2) /* 继续执行, 添加了 return 不执行 */
+})
+  .then((result) => {
+    console.log(result)
+  })
+
+/* Promise.prototype.then 为 Promise 实例添加状态改变时的回调函数 */
+/* then 方法返回的是一个新的 Promise 实例, 链式写法, 上一个 then 会将结果作为参数, 传入第二个回调函数 */
+
+/* Promise 内部的错误不会影响到 Promise 外部的代码 */
+
+/* Promise.all() 方法将多个 Promise 实例, 包装成一个新的 Promise 实例 */
+const p = Promise.all([p1, p2, p3])
+/* p1, p2, p3 的状态都变成 fulfilled p => fulfilled, 此时 p1 p2 p3的返回值组成一个数组, 传递给 p 的回调函数 */

@@ -376,3 +376,15 @@ for (const key of Object.keys(es6)) {
     不同于 forEach 它可以与 break continue return 配合使用
     提供了遍历所有数据结构的统一操作接口
 */
+const obj = {
+  [Symbol.iterator]: function () {
+    return {
+      next: function () {
+        return {
+          value: 1,
+          done: true,
+        }
+      },
+    }
+  },
+}

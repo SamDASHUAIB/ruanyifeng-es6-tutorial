@@ -249,3 +249,129 @@ function f(v) {
 let person = { name: 'John', age: 20 }
 // 绑定 person 运行环境
 console.log([10, 12, 26, 15].find(f, person)) // 26 第一个大于 age 的数
+
+/*
+  扩展运算符主要用于函数调用
+  rest 参数的逆运算, 将一个数组转为用逗号分隔的参数列表
+*/
+console.log(...[1, 2, 3])
+console.log(1, ...[2, 3, 4], 5)
+/* 主要用于函数调用 */
+/* 将一个数组转为用逗号分隔的参数列表 */
+function push(array, ...items) {
+  array.push(...items)
+}
+function add(x, y) {
+  return x + y
+}
+const numbers = [4, 38]
+console.log(add(...numbers)) // 42
+
+/* 只有函数调用时, 扩展运算符才可以放在圆括号里面, 否则报错 */
+/* console.log((...[1, 2])); 报错  */
+
+/* 可以替代掉函数的 apply 方法 */
+/* 可以解决掉, 某些方法的参数不能是数组, 只好通过 apply 方法变通使用这些方法 */
+Math.max.apply(null, [14, 3, 77])
+Math.max(...[14, 3, 77])
+/* 将一个数组添加到另一个数组的尾部 */
+var arr1 = [0, 1, 2]
+var arr2 = [3, 4, 5]
+Array.prototype.push.apply(arr1, arr2)
+console.log(arr1) /* [ 0, 1, 2, 3, 4, 5 ] */
+
+var arr1 = [0, 1, 2]
+var arr2 = [3, 4, 5]
+arr1.push(...arr2)
+console.log(arr1) /* [ 0, 1, 2, 3, 4, 5 ] */
+
+/*
+  扩展运算符的应用
+*/
+// 复制数组
+const a1 = [1, 2]
+const a2 = [...a1]
+a2[0] = 2
+console.log(a1) /* [1, 2] 浅拷贝 */
+
+// 合并数组
+const a1 = ['a', 'b']
+const a2 = ['c']
+const a3 = ['d', 'e']
+const arr = [...a1, ...a2, ...a3]
+console.log(arr) /* [ 'a', 'b', 'c', 'd', 'e' ]*/
+/* 浅拷贝, 注意 */
+const a1 = [{ foo: 1 }]
+const a2 = [{ bar: 2 }]
+const a3 = a1.concat(a2)
+const a4 = [...a1, ...a2]
+console.log(a3[0] === a1[0]) // true
+console.log(a4[0] === a1[0]) // true
+
+// 解构赋值 + 扩展运算符
+const [first, ...rest] = [1, 2, 3, 4, 5]
+console.log(first)
+console.log(rest)
+
+const [first, ...rest] = ['foo']
+console.log(first) // foo
+console.log(rest) // []
+
+/*
+  实现了 Iterator 接口的对象
+  对于没有部署 Iterator 接口的类似数组的对象, 扩展运算符就无法将其转为真正的数组
+  Map Set Generator 函数 可以
+  扩展运算符内部调用的是数据结构的 Iterator 接口, 因此只有具有 Iterator 接口的对象, 都可以使用扩展运算符
+*/
+
+/*
+  Array.from
+  类数组(本质特征只有一个 length 属性) + 可遍历对象
+*/
+let arrayLike = {
+  0: 'a',
+  1: 'b',
+  2: 'c',
+  length: 3,
+}
+let arr = Array.from(arrayLike)
+console.log(arr) /* [ 'a', 'b', 'c' ] */
+
+console.log(Array.from('hello')) /* [ 'h', 'e', 'l', 'l', 'o' ] */
+
+/*
+  find findIndex 接收一个回调函数(筛选条件), 所有的数组成员都依次执行该回调函数, 直到找出第一个返回值为 true 的成员
+  然后返回该成员/位置
+  找不到 undefined/-1
+  接收第二个参数, 为回调函数绑定 this
+*/
+const f = (v) => {
+  return v > this.age
+}
+let person = { name: 'John', age: 20 }
+console.log([10, 12, 26, 15].find(f, person)) // undefined 回调函数是箭头函数时, 无法绑定 this(this 动态切换, 不要使用箭头函数)
+
+function f(v) {
+  return v > this.age
+}
+let person = { name: 'John', age: 20 }
+console.log([10, 12, 26, 15].find(f, person)) // 26 为回调函数绑定 this 时, 使用普通函数
+
+/*
+  数组实例的 entries keys values
+*/
+for (const index of ['a', 'b'].keys()) {
+  console.log(index)
+}
+for (const elem of ['a', 'b'].values()) {
+  console.log(elem)
+}
+for (const [index, elem] of ['a', 'b'].entries()) {
+  console.log(index, elem)
+}
+/*
+  某个数组是否包含给定的值
+*/
+console.log([1, 2, 3].includes(2)) // true
+console.log([1, 2, 3].includes(4)) // false
+console.log([1, 2, NaN].includes(NaN)) // true

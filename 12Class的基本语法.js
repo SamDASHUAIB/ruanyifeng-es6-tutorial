@@ -298,5 +298,3 @@ class Rectangle extends Shape {
 }
 var y = new Rectangle(3, 4) // 正确
 var x = new Shape() // 报错 Error: 本类不能实例化
-
-/* 在函数外部, new.target 会报错 */
